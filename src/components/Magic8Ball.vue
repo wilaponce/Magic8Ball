@@ -1,11 +1,13 @@
 
 <template>
   <div class="container" @click="shakeBall">
-    <div :class="['ball', { 'shake': isShaking }]">
+    <div ref="ball" class="ball">
       <div v-if="!showAnswer" class="eight">8</div>
-      <div class="inner-circle" v-if="showAnswer">
-        <div class="pyramid">
-          <div class="answer">{{ answer }}</div>
+      <div v-if="showAnswer" class="inner-circle">
+        <div v-for="(pyramid, index) in pyramids" :key="index" class="pyramid" :ref="'pyramid' + index">
+          <div class="face" v-for="(face, fIndex) in 3" :key="fIndex">
+            <div class="answer">{{ index === selectedIndex ? answer : '' }}</div>
+          </div>
         </div>
         <div class="bubbles">
           <div v-for="n in 10" :key="n" class="bubble" :style="{ animationDelay: (n * 0.2) + 's' }"></div>
@@ -17,30 +19,52 @@
 </template>
 
 <script>
+import { gsap } from "gsap";
+
 export default {
   data() {
     return {
-      isShaking: false,
       showAnswer: false,
       answer: '',
       answers: [
         "Yes", "No", "Maybe", "Ask again later", "Definitely",
         "Outlook not so good", "Without a doubt", "Cannot predict now"
-      ]
+      ],
+      pyramids: new Array(5).fill(null),
+      selectedIndex: 0
     };
   },
   methods: {
     shakeBall() {
-      if (this.isShaking) return;
-      this.showAnswer = false;
-      this.isShaking = true;
+      if (this.showAnswer) return;
+
+      this.answer = this.answers[Math.floor(Math.random() * this.answers.length)];
+      this.selectedIndex = Math.floor(Math.random() * this.pyramids.length);
+      this.showAnswer = true;
 
       this.$nextTick(() => {
-        setTimeout(() => {
-          this.isShaking = false;
-          this.showAnswer = true;
-          this.answer = this.answers[Math.floor(Math.random() * this.answers.length)];
-        }, 1500);
+        const ball = this.$refs.ball;
+        const tl = gsap.timeline({ defaults: { duration: 0.5, ease: "power2.inOut" } });
+
+        tl.to(ball, { rotation: 15, scale: 1.05 })
+          .to(ball, { rotation: -15, scale: 1.05 })
+          .to(ball, { rotation: 0, scale: 1 });
+
+        this.pyramids.forEach((_, index) => {
+          const pyramid = this.$refs['pyramid' + index];
+          const pyramidTl = gsap.timeline({ repeat: -1, yoyo: true, ease: "sine.inOut" });
+          pyramidTl.to(pyramid, { rotationY: 360, duration: 3 });
+          pyramidTl.to(pyramid, { x: Math.random() * 100 - 50, y: Math.random() * 100 - 50, duration: 2 });
+        });
+
+        const selectedPyramid = this.$refs['pyramid' + this.selectedIndex];
+        gsap.to(selectedPyramid, {
+          x: 0,
+          y: -50,
+          scale: 1.2,
+          duration: 2,
+          ease: "elastic.out(1, 0.3)"
+        });
       });
     }
   }
@@ -69,26 +93,12 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.5s ease;
   position: relative;
-}
-
-.shake {
-  animation: shakeTwist 1.5s ease-in-out;
-}
-
-@keyframes shakeTwist {
-  0% { transform: rotate(0deg) scale(1); }
-  20% { transform: rotate(10deg) scale(1.05); }
-  40% { transform: rotate(-10deg) scale(1.05); }
-  60% { transform: rotate(15deg) scale(1.1); }
-  80% { transform: rotate(-15deg) scale(1.1); }
-  100% { transform: rotate(360deg) scale(1); }
+  transform-style: preserve-3d;
 }
 
 .eight {
   font-size: 100px;
-  font-weight: bold;
   color: white;
 }
 
@@ -101,29 +111,35 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 
 .pyramid {
+  position: absolute;
   width: 0;
   height: 0;
-  border-left: 60px solid transparent;
-  border-right: 60px solid transparent;
-  border-bottom: 100px solid #9370DB;
+  transform-style: preserve-3d;
+}
+
+.face {
+  width: 0;
+  height: 0;
+  border-left: 40px solid transparent;
+  border-right: 40px solid transparent;
+  border-bottom: 70px solid #9370DB;
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  transform-origin: center;
 }
 
 .answer {
   position: absolute;
-  top: 65%;
+  top: 40%;
   left: 50%;
   transform: translate(-50%, -50%);
   color: white;
-  font-size: 16px;
+  font-size: 12px;
   text-align: center;
-  width: 100px;
+  width: 80px;
 }
 
 .bubbles {
