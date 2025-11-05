@@ -1,13 +1,12 @@
+
 <template>
   <div class="container" @click="shakeBall">
-    <div :class="['ball', { 'shake': isShaking }]">
-      <div class="front" v-if="!showAnswer">8</div>
+    <div :class="['ball', { 'shake': isShaking, 'spinning': isSpinning }]">
+      <div class="white-border"></div>
+      <div v-if="!showAnswer" class="eight">8</div>
       <div class="inner-circle" v-if="showAnswer">
         <div class="pyramid">
           <div class="answer">{{ answer }}</div>
-        </div>
-        <div class="background-pyramids">
-          <div v-for="n in 3" :key="n" class="pyramid small"></div>
         </div>
         <div class="bubbles">
           <div v-for="n in 10" :key="n" class="bubble" :style="{ animationDelay: (n * 0.2) + 's' }"></div>
@@ -23,6 +22,7 @@ export default {
   data() {
     return {
       isShaking: false,
+      isSpinning: false,
       showAnswer: false,
       answer: '',
       answers: [
@@ -33,16 +33,20 @@ export default {
   },
   methods: {
     shakeBall() {
-      if (this.isShaking) return;
+      if (this.isShaking || this.isSpinning) return;
       this.showAnswer = false;
       this.isShaking = true;
-      this.$nextTick(() => {
-        setTimeout(() => {
-          this.isShaking = false;
-          this.showAnswer = true;
-          this.answer = this.answers[Math.floor(Math.random() * this.answers.length)];
-        }, 1500);
-      });
+      this.isSpinning = true;
+
+      setTimeout(() => {
+        this.isShaking = false;
+        this.answer = this.answers[Math.floor(Math.random() * this.answers.length)];
+        this.showAnswer = true;
+      }, 1500);
+
+      setTimeout(() => {
+        this.isSpinning = false;
+      }, 2000);
     }
   }
 };
@@ -70,27 +74,46 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.5s ease;
   position: relative;
+  transition: transform 0.5s ease;
 }
 
-.front {
+.white-border {
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  border: 5px solid white;
+  box-sizing: border-box;
+  z-index: 0;
+}
+
+.eight {
   font-size: 100px;
   font-weight: bold;
   color: white;
+  z-index: 1;
 }
 
 .shake {
-  animation: shake 1.5s ease-in-out;
+  animation: shake 0.5s ease-in-out;
+}
+
+.spinning {
+  animation: spin 2s ease-in-out;
 }
 
 @keyframes shake {
   0% { transform: rotate(0deg) scale(1); }
-  20% { transform: rotate(10deg) scale(1.05); }
-  40% { transform: rotate(-10deg) scale(1.05); }
-  60% { transform: rotate(15deg) scale(1.05); }
-  80% { transform: rotate(-15deg) scale(1.05); }
+  25% { transform: rotate(5deg) scale(1.05); }
+  50% { transform: rotate(-5deg) scale(1.05); }
+  75% { transform: rotate(5deg) scale(1.05); }
   100% { transform: rotate(0deg) scale(1); }
+}
+
+@keyframes spin {
+  0% { transform: rotateY(0deg); }
+  100% { transform: rotateY(360deg); }
 }
 
 .inner-circle {
@@ -102,29 +125,19 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  z-index: 2;
 }
 
 .pyramid {
   width: 0;
   height: 0;
-  border-left: 60px solid transparent;
-  border-right: 60px solid transparent;
-  border-bottom: 100px solid #9370DB;
+  border-left: 40px solid transparent;
+  border-right: 40px solid transparent;
+  border-bottom: 70px solid #9370DB;
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-}
-
-.pyramid.small {
-  border-left: 20px solid transparent;
-  border-right: 20px solid transparent;
-  border-bottom: 40px solid #6A5ACD;
-  top: auto;
-  bottom: 10px;
-  left: calc(50% + 40px);
-  transform: translateX(-50%);
 }
 
 .answer {
@@ -135,7 +148,7 @@ export default {
   color: white;
   font-size: 14px;
   text-align: center;
-  width: 100px;
+  width: 80px;
 }
 
 .bubbles {
