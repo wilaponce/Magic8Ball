@@ -1,28 +1,17 @@
 
 <template>
-  <div class="container">
-    <div
-      class="ball"
-      :class="{ flipped: isFlipped, shaking: isShaking }"
-      @click="shakeBall"
-    >
-      <div v-if="!isFlipped" class="eight-side">
-        <div class="eight-circle">
-          <span class="eight-text">8</span>
+  <div class="container" @click="shakeBall">
+    <div :class="['ball', { 'shake': isShaking }]">
+      <div class="inner-circle" v-if="showAnswer">
+        <div class="pyramid">
+          <div class="answer">{{ answer }}</div>
         </div>
-        <div class="prompt">Ask me what you want to know</div>
-      </div>
-      <div v-else class="pyramid-side">
-        <div class="inner-circle">
-          <div class="pyramid">
-            <div class="answer">{{ selectedAnswer }}</div>
-          </div>
-          <div class="bubbles">
-            <div v-for="n in 10" :key="n" class="bubble" :style="bubbleStyle(n)"></div>
-          </div>
+        <div class="bubbles">
+          <div v-for="n in 10" :key="n" class="bubble" :style="{ animationDelay: (n * 0.2) + 's' }"></div>
         </div>
       </div>
     </div>
+    <div v-if="!showAnswer" class="prompt">Ask me what you want to know</div>
   </div>
 </template>
 
@@ -30,13 +19,13 @@
 export default {
   data() {
     return {
-      isFlipped: false,
       isShaking: false,
+      showAnswer: false,
+      answer: '',
       answers: [
         "Yes", "No", "Maybe", "Ask again later", "Definitely",
         "Outlook not so good", "Without a doubt", "Cannot predict now"
-      ],
-      selectedAnswer: ""
+      ]
     };
   },
   methods: {
@@ -44,23 +33,10 @@ export default {
       if (this.isShaking) return;
       this.isShaking = true;
       setTimeout(() => {
-        this.selectedAnswer = this.answers[Math.floor(Math.random() * this.answers.length)];
-        this.isFlipped = true;
         this.isShaking = false;
+        this.showAnswer = true;
+        this.answer = this.answers[Math.floor(Math.random() * this.answers.length)];
       }, 1000);
-    },
-    bubbleStyle(n) {
-      const size = Math.random() * 8 + 4;
-      const left = Math.random() * 100;
-      const delay = Math.random() * 2;
-      const duration = 3 + Math.random() * 2;
-      return {
-        width: `${size}px`,
-        height: `${size}px`,
-        left: `${left}%`,
-        animationDelay: `${delay}s`,
-        animationDuration: `${duration}s`
-      };
     }
   }
 };
@@ -69,76 +45,43 @@ export default {
 <style scoped>
 .container {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background: #111;
-}
-
-.ball {
-  width: 400px;
-  height: 400px;
-  border-radius: 50%;
-  background: radial-gradient(circle at center, #000 60%, #222);
-  box-shadow: 0 0 30px #000;
-  position: relative;
-  perspective: 1000px;
-  transition: transform 1s ease-in-out;
-}
-
-.ball.shaking {
-  animation: shake 0.5s ease-in-out;
-}
-
-.ball.flipped {
-  transform: rotateY(180deg);
-}
-
-.eight-side, .pyramid-side {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  position: absolute;
-  backface-visibility: hidden;
-  display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  height: 100vh;
+  background: radial-gradient(circle, #222, #000);
+  color: white;
+  font-family: sans-serif;
+  user-select: none;
 }
 
-.eight-side {
-  transform: rotateY(0deg);
-}
-
-.pyramid-side {
-  transform: rotateY(180deg);
-}
-
-.eight-circle {
-  width: 100px;
-  height: 100px;
-  background: white;
+.ball {
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle at center, #000 60%, #222);
   border-radius: 50%;
+  box-shadow: 0 0 30px #000;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: transform 0.5s ease;
 }
 
-.eight-text {
-  font-size: 48px;
-  font-weight: bold;
-  color: black;
+.shake {
+  animation: shake 0.5s ease-in-out;
 }
 
-.prompt {
-  margin-top: 20px;
-  color: white;
-  font-size: 18px;
+@keyframes shake {
+  0% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(5deg) scale(1.05); }
+  50% { transform: rotate(-5deg) scale(1.05); }
+  75% { transform: rotate(5deg) scale(1.05); }
+  100% { transform: rotate(0deg) scale(1); }
 }
 
 .inner-circle {
-  width: 200px;
-  height: 200px;
+  width: 180px;
+  height: 180px;
   background: #4B0082;
   border-radius: 50%;
   position: relative;
@@ -153,20 +96,26 @@ export default {
   border-left: 40px solid transparent;
   border-right: 40px solid transparent;
   border-bottom: 70px solid #9370DB;
-  position: relative;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .answer {
   position: absolute;
-  top: 80px;
-  width: 100px;
-  text-align: center;
+  top: 60%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   color: white;
   font-size: 14px;
+  text-align: center;
+  width: 100px;
 }
 
 .bubbles {
   position: absolute;
+  bottom: 10px;
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -175,24 +124,24 @@ export default {
 .bubble {
   position: absolute;
   bottom: 0;
+  left: 50%;
+  width: 10px;
+  height: 10px;
   background: white;
   border-radius: 50%;
   opacity: 0.6;
-  animation-name: rise;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-}
-
-@keyframes shake {
-  0% { transform: rotate(0deg); }
-  25% { transform: rotate(10deg); }
-  50% { transform: rotate(-10deg); }
-  75% { transform: rotate(10deg); }
-  100% { transform: rotate(0deg); }
+  animation: rise 3s infinite ease-in;
 }
 
 @keyframes rise {
-  0% { bottom: 0; opacity: 0.6; }
-  100% { bottom: 100%; opacity: 0; }
+  0% { transform: translateY(0) scale(1); opacity: 0.6; }
+  50% { transform: translateY(-100px) scale(1.2); opacity: 0.4; }
+  100% { transform: translateY(-200px) scale(0.8); opacity: 0; }
+}
+
+.prompt {
+  margin-top: 20px;
+  font-size: 18px;
+  text-align: center;
 }
 </style>
