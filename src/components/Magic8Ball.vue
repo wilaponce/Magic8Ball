@@ -1,15 +1,16 @@
 <template>
   <div class="container" @click="shakeBall">
     <div :class="['ball', { 'shake': isShaking }]">
-      <div class="inner-circle">
-        <div class="liquid">
-          <div v-for="n in 20" :key="n" class="bubble" :style="{ animationDelay: (n * 0.1) + 's', left: (Math.random() * 100) + '%' }"></div>
+      <div class="front" v-if="!showAnswer">8</div>
+      <div class="inner-circle" v-if="showAnswer">
+        <div class="pyramid">
+          <div class="answer">{{ answer }}</div>
         </div>
-        <div class="pyramids">
-          <div class="pyramid background" v-for="n in 3" :key="'bg-' + n" :style="{ top: (30 + n * 10) + '%', left: (30 + n * 10) + '%' }"></div>
-          <div class="pyramid foreground">
-            <div class="answer">{{ answer }}</div>
-          </div>
+        <div class="background-pyramids">
+          <div v-for="n in 3" :key="n" class="pyramid small"></div>
+        </div>
+        <div class="bubbles">
+          <div v-for="n in 10" :key="n" class="bubble" :style="{ animationDelay: (n * 0.2) + 's' }"></div>
         </div>
       </div>
     </div>
@@ -35,11 +36,13 @@ export default {
       if (this.isShaking) return;
       this.showAnswer = false;
       this.isShaking = true;
-      setTimeout(() => {
-        this.answer = this.answers[Math.floor(Math.random() * this.answers.length)];
-        this.isShaking = false;
-        this.showAnswer = true;
-      }, 1500);
+      this.$nextTick(() => {
+        setTimeout(() => {
+          this.isShaking = false;
+          this.showAnswer = true;
+          this.answer = this.answers[Math.floor(Math.random() * this.answers.length)];
+        }, 1500);
+      });
     }
   }
 };
@@ -71,16 +74,22 @@ export default {
   position: relative;
 }
 
-.shake {
-  animation: shakeBounce 1.5s ease-in-out;
+.front {
+  font-size: 100px;
+  font-weight: bold;
+  color: white;
 }
 
-@keyframes shakeBounce {
+.shake {
+  animation: shake 1.5s ease-in-out;
+}
+
+@keyframes shake {
   0% { transform: rotate(0deg) scale(1); }
-  20% { transform: rotate(10deg) scale(1.1); }
-  40% { transform: rotate(-10deg) scale(1.1); }
-  60% { transform: rotate(10deg) scale(1.1); }
-  80% { transform: rotate(-10deg) scale(1.1); }
+  20% { transform: rotate(10deg) scale(1.05); }
+  40% { transform: rotate(-10deg) scale(1.05); }
+  60% { transform: rotate(15deg) scale(1.05); }
+  80% { transform: rotate(-15deg) scale(1.05); }
   100% { transform: rotate(0deg) scale(1); }
 }
 
@@ -90,59 +99,32 @@ export default {
   background: #4B0082;
   border-radius: 50%;
   position: relative;
-  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.liquid {
-  position: absolute;
-  width: 100%;
-  height: 100%;
   overflow: hidden;
-}
-
-.bubble {
-  position: absolute;
-  bottom: 0;
-  width: 10px;
-  height: 10px;
-  background: white;
-  border-radius: 50%;
-  opacity: 0.6;
-  animation: rise 3s infinite ease-in;
-}
-
-@keyframes rise {
-  0% { transform: translateY(0) scale(1); opacity: 0.6; }
-  50% { transform: translateY(-80px) scale(1.2); opacity: 0.4; }
-  100% { transform: translateY(-160px) scale(0.8); opacity: 0; }
-}
-
-.pyramids {
-  position: relative;
-  width: 100%;
-  height: 100%;
 }
 
 .pyramid {
   width: 0;
   height: 0;
-  border-left: 30px solid transparent;
-  border-right: 30px solid transparent;
-  border-bottom: 50px solid #9370DB;
+  border-left: 60px solid transparent;
+  border-right: 60px solid transparent;
+  border-bottom: 100px solid #9370DB;
   position: absolute;
-}
-
-.pyramid.background {
-  opacity: 0.3;
-}
-
-.pyramid.foreground {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+
+.pyramid.small {
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-bottom: 40px solid #6A5ACD;
+  top: auto;
+  bottom: 10px;
+  left: calc(50% + 40px);
+  transform: translateX(-50%);
 }
 
 .answer {
@@ -154,6 +136,32 @@ export default {
   font-size: 14px;
   text-align: center;
   width: 100px;
+}
+
+.bubbles {
+  position: absolute;
+  bottom: 10px;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.bubble {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  background: white;
+  border-radius: 50%;
+  opacity: 0.6;
+  animation: rise 3s infinite ease-in;
+}
+
+@keyframes rise {
+  0% { transform: translateY(0) scale(1); opacity: 0.6; }
+  50% { transform: translateY(-100px) scale(1.2); opacity: 0.4; }
+  100% { transform: translateY(-200px) scale(0.8); opacity: 0; }
 }
 
 .prompt {
