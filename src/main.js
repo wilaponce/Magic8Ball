@@ -1,5 +1,4 @@
+import { createApp } from 'vue'
+import Magic8Ball from './components/Magic8Ball.vue'
 
-import { createApp } from 'vue';
-import App from './App.vue';
-
-createApp(App).mount('#app');
+createApp(Magic8Ball).mount('#app')
