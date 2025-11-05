@@ -1,13 +1,15 @@
-
 <template>
   <div class="container" @click="shakeBall">
     <div :class="['ball', { 'shake': isShaking }]">
-      <div class="inner-circle" v-if="showAnswer">
-        <div class="pyramid">
-          <div class="answer">{{ answer }}</div>
+      <div class="inner-circle">
+        <div class="liquid">
+          <div v-for="n in 20" :key="n" class="bubble" :style="{ animationDelay: (n * 0.1) + 's', left: (Math.random() * 100) + '%' }"></div>
         </div>
-        <div class="bubbles">
-          <div v-for="n in 10" :key="n" class="bubble" :style="{ animationDelay: (n * 0.2) + 's' }"></div>
+        <div class="pyramids">
+          <div class="pyramid background" v-for="n in 3" :key="'bg-' + n" :style="{ top: (30 + n * 10) + '%', left: (30 + n * 10) + '%' }"></div>
+          <div class="pyramid foreground">
+            <div class="answer">{{ answer }}</div>
+          </div>
         </div>
       </div>
     </div>
@@ -31,12 +33,13 @@ export default {
   methods: {
     shakeBall() {
       if (this.isShaking) return;
+      this.showAnswer = false;
       this.isShaking = true;
       setTimeout(() => {
+        this.answer = this.answers[Math.floor(Math.random() * this.answers.length)];
         this.isShaking = false;
         this.showAnswer = true;
-        this.answer = this.answers[Math.floor(Math.random() * this.answers.length)];
-      }, 1000);
+      }, 1500);
     }
   }
 };
@@ -65,17 +68,19 @@ export default {
   align-items: center;
   justify-content: center;
   transition: transform 0.5s ease;
+  position: relative;
 }
 
 .shake {
-  animation: shake 0.5s ease-in-out;
+  animation: shakeBounce 1.5s ease-in-out;
 }
 
-@keyframes shake {
+@keyframes shakeBounce {
   0% { transform: rotate(0deg) scale(1); }
-  25% { transform: rotate(5deg) scale(1.05); }
-  50% { transform: rotate(-5deg) scale(1.05); }
-  75% { transform: rotate(5deg) scale(1.05); }
+  20% { transform: rotate(10deg) scale(1.1); }
+  40% { transform: rotate(-10deg) scale(1.1); }
+  60% { transform: rotate(10deg) scale(1.1); }
+  80% { transform: rotate(-10deg) scale(1.1); }
   100% { transform: rotate(0deg) scale(1); }
 }
 
@@ -85,18 +90,56 @@ export default {
   background: #4B0082;
   border-radius: 50%;
   position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+.liquid {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.bubble {
+  position: absolute;
+  bottom: 0;
+  width: 10px;
+  height: 10px;
+  background: white;
+  border-radius: 50%;
+  opacity: 0.6;
+  animation: rise 3s infinite ease-in;
+}
+
+@keyframes rise {
+  0% { transform: translateY(0) scale(1); opacity: 0.6; }
+  50% { transform: translateY(-80px) scale(1.2); opacity: 0.4; }
+  100% { transform: translateY(-160px) scale(0.8); opacity: 0; }
+}
+
+.pyramids {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
 .pyramid {
   width: 0;
   height: 0;
-  border-left: 40px solid transparent;
-  border-right: 40px solid transparent;
-  border-bottom: 70px solid #9370DB;
+  border-left: 30px solid transparent;
+  border-right: 30px solid transparent;
+  border-bottom: 50px solid #9370DB;
   position: absolute;
+}
+
+.pyramid.background {
+  opacity: 0.3;
+}
+
+.pyramid.foreground {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -111,32 +154,6 @@ export default {
   font-size: 14px;
   text-align: center;
   width: 100px;
-}
-
-.bubbles {
-  position: absolute;
-  bottom: 10px;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-
-.bubble {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  width: 10px;
-  height: 10px;
-  background: white;
-  border-radius: 50%;
-  opacity: 0.6;
-  animation: rise 3s infinite ease-in;
-}
-
-@keyframes rise {
-  0% { transform: translateY(0) scale(1); opacity: 0.6; }
-  50% { transform: translateY(-100px) scale(1.2); opacity: 0.4; }
-  100% { transform: translateY(-200px) scale(0.8); opacity: 0; }
 }
 
 .prompt {
