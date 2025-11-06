@@ -1,90 +1,159 @@
+
 <template>
-  <div class="container">
-    <canvas ref="canvas" class="three-canvas"></canvas>
+  <div class="magic8-container">
+    <div class="magic8" :class="{ shaking: isShaking }" @click="shakeBall">
+      <!-- Outer black ball -->
+      <svg viewBox="0 0 400 400" class="ball-svg" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="ballGrad" cx="40%" cy="30%">
+            <stop offset="0%" stop-color="#222"/>
+            <stop offset="60%" stop-color="#000"/>
+            <stop offset="100%" stop-color="#050505"/>
+          </radialGradient>
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="8" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <circle cx="200" cy="200" r="180" fill="url(#ballGrad)" />
+
+        <!-- Inner reflective highlight -->
+        <ellipse cx="140" cy="120" rx="50" ry="30" fill="#2a2a2a" opacity="0.5" />
+
+        <!-- Inner dark window (base) -->
+        <circle cx="200" cy="200" r="90" fill="#0b0b0b" stroke="#333" stroke-width="4" />
+
+        <!-- Triangle (the 'pyramid' / answer window) -->
+        <polygon points="200,135 150,255 250,255" fill="#2b0057" filter="url(#glow)" />
+
+        <!-- White circle behind the '8' that will fade when an answer appears -->
+        <circle
+          class="white-window"
+          cx="200"
+          cy="200"
+          r="90"
+          fill="#fff"
+          stroke="#333"
+          stroke-width="4"
+          :opacity="selectedAnswer ? 0 : 1"
+          style="transition: opacity 0.45s ease"
+          pointer-events="none"
+        />
+
+        <!-- Answer text + big '8' (use opacity to fade between them) -->
+        <text
+          class="svg-text svg-eight"
+          x="200"
+          y="205"
+          text-anchor="middle"
+          fill="#000"
+          stroke="#000"
+          stroke-width="0"
+          font-size="100"
+          font-family="Arial, Helvetica, sans-serif"
+          font-weight="700"
+          :opacity="selectedAnswer ? 0 : 1"
+          style="transition: opacity 0.35s ease"
+        >
+          8
+        </text>
+
+        <text
+          class="svg-text svg-answer"
+          x="200"
+          y="210"
+          text-anchor="middle"
+          fill="#fff"
+          font-size="16"
+          font-family="Arial"
+          :opacity="selectedAnswer ? 1 : 0"
+          style="transition: opacity 0.35s ease"
+        >
+          {{ selectedAnswer }}
+        </text>
+      </svg>
+    </div>
+    <div class="instructions">Click the ball to ask a question</div>
   </div>
 </template>
 
 <script>
-import { onMounted, ref } from 'vue';
-import * as THREE from 'three';
-import { gsap } from 'gsap';
-
 export default {
-  setup() {
-    const canvas = ref(null);
-
-    onMounted(() => {
-      const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-      const renderer = new THREE.WebGLRenderer({ canvas: canvas.value, alpha: true });
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.shadowMap.enabled = true;
-
-      const ballGeometry = new THREE.SphereGeometry(2, 32, 32);
-      const ballMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
-      const ball = new THREE.Mesh(ballGeometry, ballMaterial);
-      ball.castShadow = true;
-      scene.add(ball);
-
-      const pyramidGeometry = new THREE.ConeGeometry(1, 2, 4);
-      const pyramidMaterial = new THREE.MeshStandardMaterial({ color: 0x9370DB });
-      const pyramid = new THREE.Mesh(pyramidGeometry, pyramidMaterial);
-      pyramid.position.set(0, 0, 2);
-      pyramid.castShadow = true;
-      scene.add(pyramid);
-
-      const light = new THREE.PointLight(0xffffff, 1);
-      light.position.set(5, 5, 5);
-      light.castShadow = true;
-      scene.add(light);
-
-      const ambientLight = new THREE.AmbientLight(0x404040);
-      scene.add(ambientLight);
-
-      camera.position.z = 5;
-
-      function animate() {
-        requestAnimationFrame(animate);
-        renderer.render(scene, camera);
-      }
-
-      animate();
-
-      gsap.to(ball.rotation, {
-        x: Math.PI * 2,
-        y: Math.PI * 2,
-        duration: 2,
-        ease: "power2.inOut"
-      });
-
-      gsap.to(pyramid.rotation, {
-        y: Math.PI * 2,
-        duration: 3,
-        ease: "elastic.out(1, 0.3)"
-      });
-    });
-
+  data() {
     return {
-      canvas
+      isShaking: false,
+      answers: [
+        'Yes', 'No', 'Maybe', 'Ask again later', 'Definitely',
+        'Outlook not so good', 'Without a doubt', 'Cannot predict now'
+      ],
+      selectedAnswer: ''
     };
+  },
+  methods: {
+    shakeBall() {
+      if (this.isShaking) return;
+      this.isShaking = true;
+      this.selectedAnswer = '';
+      // quick shake animation then reveal
+      setTimeout(() => {
+        this.selectedAnswer = this.answers[Math.floor(Math.random() * this.answers.length)];
+        this.isShaking = false;
+      }, 900);
+    }
   }
 };
 </script>
 
 <style scoped>
-.container {
-  width: 100%;
-  height: 100vh;
-  overflow: hidden;
+.magic8-container {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  background: radial-gradient(circle, #222, #000);
+  justify-content: center;
+  height: 100vh;
+  background: #111;
+  color: #fff;
 }
 
-.three-canvas {
+.magic8 {
+  width: 320px;
+  height: 320px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.magic8.shaking {
+  animation: shake 0.9s ease-in-out;
+}
+
+.ball-svg {
   width: 100%;
   height: 100%;
   display: block;
+}
+
+.white-window {
+  transition: opacity 0.45s ease;
+}
+
+.svg-text {
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+
+.instructions {
+  margin-top: 18px;
+  font-size: 14px;
+  opacity: 0.85;
+}
+
+@keyframes shake {
+  0% { transform: rotate(0deg); }
+  20% { transform: rotate(8deg); }
+  40% { transform: rotate(-8deg); }
+  60% { transform: rotate(6deg); }
+  80% { transform: rotate(-6deg); }
+  100% { transform: rotate(0deg); }
 }
 </style>
