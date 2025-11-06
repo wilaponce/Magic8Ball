@@ -121,10 +121,16 @@ export default {
   height: 320px;
   cursor: pointer;
   transition: transform 0.2s ease;
+
+ 
+
 }
 
 .magic8.shaking {
   animation: shake 0.9s ease-in-out;
+ transform-origin: center;
+  display: inline-block
+
 }
 
 .ball-svg {
@@ -149,11 +155,29 @@ export default {
 }
 
 @keyframes shake {
-  0% { transform: rotate(0deg); }
-  20% { transform: rotate(8deg); }
-  40% { transform: rotate(-8deg); }
-  60% { transform: rotate(6deg); }
-  80% { transform: rotate(-6deg); }
-  100% { transform: rotate(0deg); }
+  0% {
+    transform: translateX(0) translateY(0) rotate(0deg) skewX(0deg);
+  }
+  15% {
+    transform: translateX(-30px) translateY(-10px) rotate(-15deg) skewX(-5deg);
+  }
+  30% {
+    transform: translateX(30px) translateY(10px) rotate(15deg) skewX(5deg);
+  }
+  45% {
+    transform: translateX(-25px) translateY(-8px) rotate(-12deg) skewX(-4deg);
+  }
+  60% {
+    transform: translateX(25px) translateY(8px) rotate(12deg) skewX(4deg);
+  }
+  75% {
+    transform: translateX(-15px) translateY(-5px) rotate(-8deg) skewX(-3deg);
+  }
+  90% {
+    transform: translateX(15px) translateY(5px) rotate(8deg) skewX(3deg);
+  }
+  100% {
+    transform: translateX(0) translateY(0) rotate(0deg) skewX(0deg);
+  }
 }
 </style>
